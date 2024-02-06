@@ -15,8 +15,8 @@ class ApiError extends Error {
 
         // for production could be avoided to get error and get the exact stack tree
 
-        if(statck){
-            this.stack = statck
+        if(stack){
+            this.stack = stack
         }
         else{
             Error.captureStackTrace(this,this.constructor)
