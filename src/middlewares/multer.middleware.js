@@ -12,6 +12,6 @@ const storage = multer.diskStorage({
 //middleware
 
 
-export const upload = multer({ 
+export const upload = multer({    //to be used in routes/user.router.js
     storage: storage
  })
