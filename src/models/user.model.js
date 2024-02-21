@@ -2,7 +2,7 @@ import mongoose, {Schema} from "mongoose";
 import jwt from "jsonwebtoken";  //bearer token  
 import bcrypt from "bcrypt";
 
-const UserSchema  = new Schema(
+const userSchema  = new Schema(
     {
         username: {
             type:String,
@@ -15,6 +15,7 @@ const UserSchema  = new Schema(
             type:String,
             required:true,
             unique:true,
+            lowercase:true,
             trim:true,
         },
         fullName: {
@@ -49,7 +50,7 @@ const UserSchema  = new Schema(
     }
 )
 
-UserSchema.pre("save", async function (next) {
+userSchema.pre("save", async function (next) {
 
     //if password not changed
     if(!this.isModified("password")) return next();
@@ -60,12 +61,12 @@ UserSchema.pre("save", async function (next) {
 
 //BRCRYPT USE
 
-UserSchema.methods.isPasswordCorrect = async function(password){
+userSchema.methods.isPasswordCorrect = async function(password){
     return await bcrypt.compare(password,this.password);
 }
 
 //JWT USE 
-UserSchema.methods.generateAccessToken = function(){
+userSchema.methods.generateAccessToken = function(){
     return jwt.sign( //async might be used use case dependant
         {
             _id:this._id,  //rhs from db
@@ -79,7 +80,7 @@ UserSchema.methods.generateAccessToken = function(){
         }
     )
 }
-UserSchema.methods.generateRefreshoken = function(){
+userSchema.methods.generateRefreshoken = function(){
     return jwt.sign( //async might be used use case dependant
     { //less payload
         _id:this._id,  //rhs from db
@@ -92,5 +93,5 @@ UserSchema.methods.generateRefreshoken = function(){
 }
 
 
-export const User = mongoose.model("User", UserSchema);
+export const User = mongoose.model("User", userSchema);
 
