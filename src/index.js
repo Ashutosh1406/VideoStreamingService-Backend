@@ -1,12 +1,16 @@
-
 import dotenv from "dotenv"
 import connectDB from "./db/index.js";
 import {app} from "./app.js"
+
 
 dotenv.config({
     path: './.env'
 })
 
+// FIX TRY 1
+// const socket = net.createConnection({host:'localhost',port:8006,autoSelectFamily:false},()=> {
+//     console.log('connected to server🤲');
+// });
 connectDB()   //async method return as promises
 .then( () => {
     app.listen(process.env.PORT || 8006 , () => {
