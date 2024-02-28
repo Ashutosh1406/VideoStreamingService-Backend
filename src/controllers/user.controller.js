@@ -3,7 +3,7 @@ import {ApiError} from "../utils/ApiError.js";
 import {User} from "../models/user.model.js";
 import {uploadOnCloudinary} from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { response } from "express";
+
 
 
 //generate Token 
@@ -63,15 +63,17 @@ const registerUser = asyncHandler ( async (req,res) => {
     
     //const avatarLocalPath = req.files?.avatar[0]?.path;
     //const coverImageLocalPath = req.files?.coverImage[0]?.path;
-    //console.log(coverImageLocalPath);
+    //console.log(avatarLocalPath);
 
     // if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
     //     coverImageLocalPath = req.files.coverImage[0].path
     // }
-    let avatarLocalPath ;
+
+    let avatarLocalPath;
     if (req.files && Array.isArray(req.files.avatar) && req.files.avatar.length > 0) {
         avatarLocalPath = req.files.avatar[0].path
     }
+    console.log(avatarLocalPath);
 
     let coverImageLocalPath;
     if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
@@ -151,7 +153,7 @@ const loginUser = asyncHandler( async (req,res) => {
 
     const {email,username,password}  = req.body();
 
-    if(!(username || email))
+    if(!username && !email)
     {
         throw new ApiError(400,"Username or Email is Required")
     }
