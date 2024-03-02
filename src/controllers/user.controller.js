@@ -44,8 +44,7 @@ const registerUser = asyncHandler ( async (req,res) => {
 
     //STEP 2 
     if(
-        [fullName,email,username,password].some((field) => 
-        field?.trim() === "")
+        [fullName,email,username,password].some((field) =>  field?.trim() === "")
     ) {
         throw new ApiError(404,"All Fields are required")
     }
@@ -61,7 +60,7 @@ const registerUser = asyncHandler ( async (req,res) => {
 
     //STEP 4 
     
-    //const avatarLocalPath = req.files?.avatar[0]?.path;
+    const avatarLocalPath = req.files?.avatar[0]?.path;
     //const coverImageLocalPath = req.files?.coverImage[0]?.path;
     //console.log(avatarLocalPath);
 
@@ -69,11 +68,11 @@ const registerUser = asyncHandler ( async (req,res) => {
     //     coverImageLocalPath = req.files.coverImage[0].path
     // }
 
-    let avatarLocalPath;
-    if ( req.files.avatar[0] ) {
-        avatarLocalPath = req.files.avatar[0].path;
-    }
-    console.log(avatarLocalPath);
+    // let avatarLocalPath;
+    // if ( req.files.avatar[0] ) {
+    //     avatarLocalPath = req.files.avatar[0].path;
+    // }
+    // console.log(avatarLocalPath);
 
     let coverImageLocalPath;
     if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {

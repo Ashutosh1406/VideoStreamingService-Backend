@@ -1,7 +1,11 @@
 import dotenv from "dotenv"
 import connectDB from "./db/index.js";
 import {app} from "./app.js"
+import net from "net"
 
+if (net.setDefaultAutoSelectFamily) {
+    net.setDefaultAutoSelectFamily(false);
+}
 
 dotenv.config({
     path: './.env'
