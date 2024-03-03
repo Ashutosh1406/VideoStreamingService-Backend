@@ -4,19 +4,22 @@ import {User} from "../models/user.model.js";
 import {uploadOnCloudinary} from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import  Jwt  from "jsonwebtoken";
+import mongoose from "mongoose";
 
 
 //generate Token 
 const generateAccessAndRefreshTokens = async(userId) => {
     try{
         const user = await User.findById(userId)       //find by id
+        //console.log("user",user)
         const accessToken = user.generateAccessToken()  //to user
         const refreshToken = user.generateRefreshToken() //to db 
 
-        user.refreshToken = refreshToken
+        user.refreshToken = refreshToken;
+        //console.log("*")
         await user.save({ validateBeforeSave : false })
 
-        return {accessToken,refreshToken}
+        return { accessToken,refreshToken }
 
     }catch(error){
         throw new ApiError(500,"Something Went Wrong while generating refresh and access Token")
@@ -150,7 +153,8 @@ const loginUser = asyncHandler( async (req,res) => {
     // 3) method/fn find for getting access to db and matching it with user entered username and generation of token
     // 4) saving those tokens inside our db with primary as username or send cookies (secure)
 
-    const {email,username,password}  = req.body();
+    const {email,username,password}  = req.body;
+    //console.log(email)
 
     if(!username && !email)
     {
@@ -158,7 +162,7 @@ const loginUser = asyncHandler( async (req,res) => {
     }
 
     const user = await User.findOne({
-        $or: [{username,email}]
+        $or: [{username},{email}]
     })
 
     if(!user){

@@ -2,11 +2,12 @@ import mongoose, {Schema} from "mongoose";
 import jwt from "jsonwebtoken";  //bearer token  
 import bcrypt from "bcrypt";
 
-const userSchema  = new Schema(
+const userSchema  = new mongoose.Schema(
     {
         username: {
             type:String,
             required:true,
+            lowercase:true,
             unique:true,
             trim:true,
             index:true //for searching optimally in db
@@ -33,7 +34,7 @@ const userSchema  = new Schema(
         },
         watchHistory: [ //array 
             {
-                type:Schema.Types.ObjectId,
+                type:mongoose.Schema.Types.ObjectId,
                 ref: "Video"
             }
         ],
@@ -45,6 +46,10 @@ const userSchema  = new Schema(
             type:String
         }
     },
+    // {  //version key false
+    //     collection:'users',
+    //     versionKey:false
+    // },
     {
         timestamps: true
     }
@@ -66,29 +71,56 @@ userSchema.methods.isPasswordCorrect = async function(password){
 }
 
 //JWT USE 
+// userSchema.methods.generateAccessToken = function(){
+//     return jwt.sign( //async might be used use case dependant
+//         {
+//             _id:this._id,  //rhs from db
+//             email:this.email,
+//             username:this.username,
+//             fullname:this.fullName
+//         },
+//         process.env.ACCESS_TOKEN_SECRET,
+//         { //expiry in object type
+//             expiresIn:process.env.ACCESS_TOKEN_EXPIRY
+//         }
+//     )
+// }
+// userSchema.methods.generateRefreshoken = async function(){
+//     return jwt.sign( //async might be used use case dependant
+//     { //less payload
+//         _id:this.id,  //rhs from db
+//     },
+//     process.env.REFRESH_TOKEN_SECRET,
+//     { //expiry in object type
+//         expiresIn:process.env.REFRESH_TOKEN_EXPIRY
+//     }
+//   )
+// }
+
 userSchema.methods.generateAccessToken = function(){
-    return jwt.sign( //async might be used use case dependant
+    //console.log("Sub 1")
+    return jwt.sign(
         {
-            _id:this._id,  //rhs from db
-            email:this.email,
+            _id: this.id,
+            email: this.email,
             username:this.username,
-            fullname:this.fullName
+            fullname:this.fullname //right side things are coming from database
         },
-        process.env.ACCESS_TOKEN_SECRET,
-        { //expiry in object type
+        process.env.ACCESS_TOKEN_SECRET, //This is the secret key which is used to encrypt the data
+        {
             expiresIn:process.env.ACCESS_TOKEN_EXPIRY
         }
     )
 }
-userSchema.methods.generateRefreshoken = function(){
-    return jwt.sign( //async might be used use case dependant
-    { //less payload
-        _id:this._id,  //rhs from db
-    },
-    process.env.REFRESH_TOKEN_SECRET,
-    { //expiry in object type
-        expiresIn:process.env.REFRESH_TOKEN_EXPIRY
-    }
+userSchema.methods.generateRefreshToken = async function(){
+    return jwt.sign(
+        {
+            _id: this.id,
+        },
+        process.env.REFRESH_TOKEN_SECRET,//This is the secret key which is used to encrypt the data
+        {
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
+        }
     )
 }
 
