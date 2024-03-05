@@ -33,7 +33,7 @@ To Login User : (after registering) else error would be thrown
 **REFRESH-TOKEN WOULD BE SENT TO DB AND HAS MORE VALIDITY in days**
 
 To Logout User (logged-in user can only logout): 
--Route is: http://localhost:8006/api/v1/users/logout
+- Route is: http://localhost:8006/api/v1/users/logout
 
 
 
