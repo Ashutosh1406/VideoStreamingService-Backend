@@ -3,7 +3,7 @@ import connectDB from "./db/index.js";
 import {app} from "./app.js"
 import net from "net"
 
-if (net.setDefaultAutoSelectFamily) {
+if (net.setDefaultAutoSelectFamily) {     //expression that took 3 days
     net.setDefaultAutoSelectFamily(false);
 }
 
