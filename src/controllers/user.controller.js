@@ -202,8 +202,8 @@ const logoutUser = asyncHandler(async(req,res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: {
-                refreshToken:undefined
+            $unset: {
+                refreshToken:1  //this removes field
             }
         },
         {
@@ -393,7 +393,7 @@ const getUserChannelProfile = asyncHandler(async(req,res) => {
         {
             $match: {
                 username:username?.toLowerCase()
-            }
+            },
         },
         {
             $lookup: {
@@ -422,7 +422,7 @@ const getUserChannelProfile = asyncHandler(async(req,res) => {
                 },
                 isSubscribed: {
                     $cond: {
-                        if:{$in : [req.user?._id,"subscribers.subscriber"]},
+                        if:{$in : [req.user?._id,"$subscribers.subscriber"]},
                         then: true,
                         else: false
                     }
@@ -508,4 +508,15 @@ const getWatchHistory = asyncHandler(async(req,res) => {
     )
 })
 
-export {registerUser,loginUser,logoutUser,refreshAccessToken,changeCurrentPassword,getCurrentUser,updateAccountDetails,updateUserProfileImage,updateUserCoverImage,getUserChannelProfile,getWatchHistory}
+export {registerUser,
+    loginUser,
+    logoutUser,
+    refreshAccessToken,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateAccountDetails,
+    updateUserProfileImage,
+    updateUserCoverImage,
+    getUserChannelProfile,
+    getWatchHistory
+}
