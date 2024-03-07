@@ -6,7 +6,7 @@ ALL THE NAMING CONVENTIONS ARE UP TO THE PRODUCTION STANDARDS AND USE BEST PRACT
 
 CONFIG:
 1) Clone the repository using the git clone command or download the zip file of the code
-2) Use **npm i** command in your workspace terminal to install all the dependencies of the project
+2) Use **npm install** command in your workspace terminal to install all the dependencies of the project
 3) The **entry** point of the backend project is "src/index.js"
 4) Type **"npm run dev"** command inside the project folder and the server will be started at PORT:8006 on your machine . Press (CTRL+C) to stop the Server
 5) Create a .env (-dotenv package already installed as a dependency) -> Requirement memtioned in below steps.
