@@ -1,10 +1,11 @@
-import mongoose , {isValidObjectId} from "mongoose";
+import mongoose from "mongoose";
 import { Video } from "../models/video.model.js";
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
-import path from "path";
+
+
 
 const publishVideo = asyncHandler(async(req,res) => {
     const {title,description} = req.body
@@ -88,10 +89,138 @@ const deleteVideo = asyncHandler(async(req,res) => {
     .json(new ApiResponse(200,{data:video},"video deleted successfully"))
 })
 
+const togglePublishStatus = asyncHandler(async(req,res) => {
+    const {videoId} = req.params
+    if(!videoId){
+        throw new ApiError(400,"Video id is required")
+    }
+    if(!mongoose.isValidObjectId(videoId)){
+        throw new ApiError(400,"Invalid video id")
+    }
+
+    const video = await Video.findOne({_id:videoId,owner:req.user._id}).select('published')
+
+    if(!video){
+        throw new ApiError(404,"Video not found")
+    }
+
+    const updatedVideo = await Video.findByIdAndUpdate(videoId,{  //from publish to unpublish or vice-versa
+        isPublished: !video.isPublished
+    },{new:true}).populate('owner','username email')
+
+    if(!updatedVideo){
+        throw new ApiError(500,"failed to update video status")
+    }
+    res
+    .status(201)
+    .json(new ApiResponse(201,{data:updatedVideo},"Video Status Updated Succesfully"))
+})
+
+const getAllVideos = asyncHandler(async(req,res) => {
+    const {page =1,limit=10,sortBy = "createdAt",sortType = "asc"} = req.query
+
+    let pipeline = [
+        {
+            $sort: {
+                [sortBy]: sortType==='desc' ? -1:1
+            }
+        },
+        {
+            $skip: (page-1)*parseInt(limit)
+        },
+        {
+            $limit:parseInt(limit)
+        },
+        {
+            $lookup: {
+                from : "users",
+                localField: "owner",
+                foreignField:"_id",
+                as:"users",
+                pipeline: [
+                    {
+                        $project:{
+                            username:1,
+                            fullname:1,
+                            avatar:1,
+                            coverImage:1
+                        }
+                    }
+                ]
+
+            }
+        },
+    ]
+    const videos = await Video.aggregate(pipeline)
+    if(!videos){
+        throw new ApiError(500,"No Videos Found")
+    }
+    return res
+    .status(200)
+    .json(new ApiResponse(200 , {videos} , "Videos Fetched Successfully"))
+})
+
+const getAllVideosByUserId = asyncHandler(async(req,res)=>{
+    const {channelId} = req.params
+    if(!channelId){
+        throw ApiError(400,"User id is required")
+    }
+
+    if(!mongoose.isValidObjectId(channelId)){
+        throw ApiError(400,"Invalid user id")
+    }
+
+    const videos = await Video.find({owner:channelId}).populate('owner','username email')
+
+    if(!videos){
+        throw new ApiError(500,"No Videos Found")
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200,{videos},"Video Fetched Successfully"))
+})
+
+const updateVideo = asyncHandler(async(req,res) => {
+    const {videoId} = req.params
+    const {title,description} = req.body
+
+    if(!title && !description){
+        throw new ApiError(400,"Title and Description are required")
+    }
+
+    if(!videoId){
+        throw new ApiError(400,"Video Id is required")
+    }
+
+    if(!mongoose.isValidObjectId(videoId)){
+        throw new ApiError(400,"Invalid Video Id")
+    }
+    
+    const thumbNailLocalPath = req.files?.thumbnail[0].path
+    if(!thumbNailLocalPath){
+        throw new ApiError(400,"Thumnail is required")
+    }
+
+    const thumbnail = await uploadOnCloudinary(thumbNailLocalPath)
+    if(!thumbnail){
+        throw new ApiError(400,"Thumbnail is required")
+    }
+
+    const updatedVideo = await Video.findOneAndUpdate({_id:videoId,owner:req.user._id},{
+        title,
+        description,
+        thumbnail:thumbnail.url
+    }, { new:true}).populate('owner','username email')
+
+    if(!updateVideo){
+        throw new ApiError(404,"Video is not found or not Updated")
+    }
+
+    res
+    .status(200)
+    .json(new ApiResponse(200,{data:updatedVideo},"Video Uploaded Successfully"))
+})
 
 
-
-
-
-
-export {publishVideo,getVideoById,deleteVideo}
+export {publishVideo,getVideoById,deleteVideo,togglePublishStatus,getAllVideos,getAllVideosByUserId,updateVideo}
