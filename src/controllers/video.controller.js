@@ -5,10 +5,14 @@ import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 
+import { pipeline } from "stream";
+
 
 
 const publishVideo = asyncHandler(async(req,res) => {
     const {title,description} = req.body
+
+    
     if(!title || !description){
         throw new ApiError(400,"Title and description is needed")
     }
@@ -60,7 +64,7 @@ const getVideoById = asyncHandler(async(req,res) => {
         throw new ApiError(400,'Invalid Video ID')
     }
 
-    const video = await Video.findById(videoId).populate('owner','username','email')
+    const video = await Video.findById(videoId).populate('owner','username') //email later
 
     if(!video){
         throw new ApiError(404,'Video Not Found')
@@ -222,5 +226,124 @@ const updateVideo = asyncHandler(async(req,res) => {
     .json(new ApiResponse(200,{data:updatedVideo},"Video Uploaded Successfully"))
 })
 
+const getAllVideosByFilter = asyncHandler(async(req,res) => {
+    const {page = 1 , limit = 10 , query = "My" , sortBy = "createdAt" , sortType = "asc" , username } = req.query;
 
-export {publishVideo,getVideoById,deleteVideo,togglePublishStatus,getAllVideos,getAllVideosByUserId,updateVideo}
+    if(page<1){
+        throw new ApiError(400,"Invalid Page Number");
+    }
+    if(limit<1){
+        throw new ApiError(400,"Invalid Limit");
+    }
+    if(sortBy && !["title","createdAt","views"].includes(sortBy)){
+        throw new ApiError(400,"Invalid Sort By")
+    }
+    if(!sortType || ["asc","desc"].indexOf(sortType)===-1){
+        throw new ApiError(400,"Invalid sortType")
+    }
+    if(!query && !username){
+        throw new ApiError(400,"Query or Username is Required")
+    }
+
+    let pipelineToFindUsingTitleandDescription = [
+        {
+            $match : {
+                $or : [
+
+                ]
+            }
+        },
+        {
+            $sort : {
+                [sortBy] : sortType === "desc" ? -1 : 1
+            }
+        },
+        {
+            $skip : (page-1)*parseInt(limit)
+        },
+        {
+            $limit: parseInt(limit)
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField : "owner" , 
+                foreignField : "_id",
+                as : "users",
+                pipeline : [
+                    {
+                        $project : {
+                            username:1,
+                            fullname:1,
+                            avatar:1,
+                            coverImage:1
+                        }
+                    }
+                ]
+            }
+        },
+    ]
+
+    let pipelineToFindUsingUsername = [
+        {
+            $lookup : {
+                from : "users",
+                localField : "owner",
+                foreignField : "_id",
+                as : "users",
+                pipeline: [
+                    {
+                        $project: {
+                            username:1,
+                            fullname:1,
+                            avatar:1,
+                            coverImage:1,
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $match : {
+                $or : [
+                    {'users.username' : {regex: new RegExp(username,'i')}},
+                ]
+            }
+        },
+        {
+            $sort:{
+                [sortBy]:sortType === 'desc' ? -1:1
+            }
+        },
+        {
+            $skip: (page-1)*parseInt(limit)
+        },
+        {
+            $limit: parseInt(limit)
+        }
+    ]
+
+    if(username){
+        pipeline = pipelineToFindUsingUsername;
+    }
+    else{
+        pipeline = pipelineToFindUsingTitleandDescription;
+    }
+
+    const videos = await Video.aggregate(pipeline)
+
+    if(!videos){
+        throw new ApiError(500,"No Videos Found")
+    }
+
+    const totalVideos = videos.length
+    const totalPages = Math.ceil(totalVideos/limit)
+
+    res
+    .status(200)
+    .json(new ApiResponse(200,{videos,totalVideos,totalPages},"Videos Fetched Successfully"))
+
+})
+
+
+export {publishVideo,getVideoById,deleteVideo,togglePublishStatus,getAllVideos,getAllVideosByUserId,updateVideo,getAllVideosByFilter}

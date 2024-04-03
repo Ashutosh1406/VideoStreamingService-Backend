@@ -1,6 +1,6 @@
 import {v2 as cloudinary} from 'cloudinary';
 import fs from 'fs'
-import { scheduler } from 'node:timers/promises';
+
 // import {upload} from "../middlewares/multer.middleware.js"
 
 
@@ -15,7 +15,9 @@ const uploadOnCloudinary = async (localFilePath) => {
         if (!localFilePath) return null
         //upload the file on cloudinary
         const response = await cloudinary.uploader.upload(localFilePath,{
-            resource_type: "auto"
+            resource_type: "auto",
+            // use_filename:true
+
         })
         //file has been uploaded successfull
         //console.log("file is uploaded on cloudinary ", response.url);
