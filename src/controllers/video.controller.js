@@ -64,13 +64,13 @@ const getVideoById = asyncHandler(async(req,res) => {
         throw new ApiError(400,'Invalid Video ID')
     }
 
-    const video = await Video.findById(videoId).populate('owner','username') //email later
+    const video = await Video.findById(videoId).populate('owner','username') //this is the change - email later
 
     if(!video){
         throw new ApiError(404,'Video Not Found')
     }
 
-    video.views += 1;
+    video.views += 1; 
 
     await video.save()
 
