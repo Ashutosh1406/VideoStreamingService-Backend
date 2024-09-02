@@ -508,6 +508,12 @@ const getWatchHistory = asyncHandler(async(req,res) => {
     )
 })
 
+const hello = asyncHandler(async(req,res) => {
+    return res
+    .status(200)
+    .json(200,"Hello from the backend")
+})
+
 export {registerUser,
     loginUser,
     logoutUser,
@@ -518,5 +524,6 @@ export {registerUser,
     updateUserProfileImage,
     updateUserCoverImage,
     getUserChannelProfile,
-    getWatchHistory
+    getWatchHistory,
+    hello
 }
